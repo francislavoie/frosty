@@ -102,7 +102,7 @@ packages:
     description:
       path: "."
       ref: background-playback
-      resolved-ref: "01f20e0a62fc79a839f5cc3eff052c2d2d602a59"
+      resolved-ref: d47ef9adb692fbe99ed4e3a00d9912cfe6b8ce3d
       url: "https://github.com/francislavoie/flutter-native-video-player.git"
     source: git
     version: "0.4.11"
