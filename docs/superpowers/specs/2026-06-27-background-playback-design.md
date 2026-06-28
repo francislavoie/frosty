@@ -53,6 +53,17 @@ Three components, each independently understandable:
 Repo: `tommyxchow/flutter-native-video-player` (`frosty-patches`). This is a separate
 repo from Frosty — see Risks for the logistics.
 
+> **Fork context:** `frosty-patches` is a Twitch-live-streaming specialization of
+> `plug-and-pay/flutter-native-video-player` (50 commits ahead / 190 behind — diverged,
+> not tracking upstream). It already adds the adjacent pieces this feature builds on:
+> **audio-only quality**, a lock-screen **MediaSession** + MediaStyle notification,
+> audio-session lifecycle handling, and seek-to-live-on-resume. Verified the **only
+> missing piece for Android background audio is the foreground service** — there is no
+> `MediaSessionService`/`startForeground`/`FOREGROUND_SERVICE` anywhere in the pinned
+> checkout. An inherited branch `feature/fix-live-streaming-n-pause-for-ios-when-in-background`
+> suggests prior iOS background work that may be cherry-pickable. So this FGS addition
+> is firmly in-scope for the fork.
+
 - **Manifest:** add `FOREGROUND_SERVICE` and `FOREGROUND_SERVICE_MEDIA_PLAYBACK`
   permissions; declare a `MediaSessionService` subclass with
   `android:foregroundServiceType="mediaPlayback"` and the
@@ -130,10 +141,18 @@ behavior on an iOS device in a follow-up; do not block the Android work on it.
 
 ## Risks / dependencies
 
-- **Fork ownership:** the Android service work lives in `tommyxchow/flutter-native-video-player`,
-  a separate repo. Implementing means either contributing upstream to that plugin or
-  maintaining a further fork and pointing `pubspec.yaml` at it. Decide the path before
-  implementation. The Frosty-side Dart work can proceed against the planned method-channel API.
+- **Plugin change is upstream, not a self-owned fork (decided):** the media3
+  `MediaSessionService` is contributed as a **pull request to `tommyxchow/flutter-native-video-player`**
+  — the change lives in the maintainer's repo, not a permanently-maintained Frosty fork.
+  - **Development/test workflow:** branch the plugin, point `pubspec.yaml`'s `ref` at
+    that branch to develop and test on-device, open the PR upstream, and once merged
+    bump `pubspec.yaml` to the merged commit.
+  - **Dependency/sequencing:** the feature can't fully ship until the plugin PR is
+    merged (or the pubspec temporarily tracks the PR branch). The Frosty-side Dart work
+    (setting, screen-off→audio-only switch) is built against the planned method-channel
+    API and is testable against the PR branch.
+  - **Authoring split:** the plan defines the plugin's Kotlin changes (so they can be
+    submitted as the PR) separately from the Frosty Dart/wiring changes.
 - **Foreground-service notification UX:** Android requires a persistent notification
   while the FGS runs. The existing MediaStyle notification covers this; ensure it's not
   shown when background mode is off / not playing.
